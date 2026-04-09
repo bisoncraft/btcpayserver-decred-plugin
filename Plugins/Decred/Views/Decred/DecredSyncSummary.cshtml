@@ -1,0 +1,28 @@
+@using BTCPayServer.Plugins.Decred.Services
+@model IEnumerable<BTCPayServer.Abstractions.Contracts.ISyncStatus>
+
+@foreach (var status in Model.OfType<DecredSyncStatus>())
+{
+    var summary = status.Summary;
+    <div class="d-flex align-items-center gap-2">
+        <span class="badge @(status.Available ? "bg-success" : "bg-warning")">
+            @status.CryptoCode
+        </span>
+        @if (summary == null || !summary.DaemonAvailable)
+        {
+            <span class="text-danger">Node unavailable</span>
+        }
+        else if (!summary.Synced)
+        {
+            <span class="text-warning">Syncing... @summary.CurrentHeight / @summary.TargetHeight</span>
+        }
+        else if (!summary.WalletAvailable)
+        {
+            <span class="text-warning">Wallet unavailable (node synced at @summary.CurrentHeight)</span>
+        }
+        else
+        {
+            <span class="text-success">Synced at @summary.CurrentHeight</span>
+        }
+    </div>
+}

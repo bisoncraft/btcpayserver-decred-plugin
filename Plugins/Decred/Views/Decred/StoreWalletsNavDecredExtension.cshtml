@@ -1,0 +1,14 @@
+@using Microsoft.AspNetCore.Routing
+@{
+    var storeId = Context.GetRouteValue("storeId")?.ToString();
+    var cryptoCode = "DCR";
+}
+<li class="nav-item">
+    <a class="nav-link"
+       asp-controller="DecredLikeStore"
+       asp-action="GetStoreDecredLikePaymentMethod"
+       asp-route-storeId="@storeId"
+       asp-route-cryptoCode="@cryptoCode">
+        Decred
+    </a>
+</li>
