@@ -12,25 +12,25 @@ If you already run BTCPay Server via [btcpayserver-docker](https://github.com/bt
 
 1. SSH into your BTCPay Server host.
 
-2. Enable Decred and regenerate the docker-compose file:
+2. Create the wallet. This only needs to be done once:
 
    ```bash
    cd "$BTCPAY_BASE_DIRECTORY/btcpayserver-docker"
+   docker run -it --rm -v generated_dcr_wallet:/root/.dcrwallet \
+     ghcr.io/bisoncraft/decred:2.1.3 dcrwallet --create
+   ```
+
+   Set a passphrase and **save the seed phrase** - this is the wallet backup. To restore an existing wallet, answer "yes" when asked if you have an existing seed.
+
+3. Enable Decred and start the wallet. The passphrase is required so dcrwallet can unlock at startup:
+
+   ```bash
    export BTCPAYGEN_CRYPTO2=dcr
+   export BTCPAY_DCR_WALLET_PASSPHRASE="your-wallet-passphrase"
    . btcpay-setup.sh -i
    ```
 
    This starts a `dcrwallet` container in SPV mode alongside your existing stack. It will sync headers and blocks from the Decred P2P network.
-
-3. To enable sending from the wallet (withdrawals), add the wallet passphrase to the `.env` file and restart:
-
-   ```bash
-   cd "$BTCPAY_BASE_DIRECTORY/btcpayserver-docker"
-   echo "BTCPAY_DCR_WALLET_PASSPHRASE=your-wallet-passphrase" >> .env
-   . btcpay-setup.sh -i
-   ```
-
-   This unlocks dcrwallet at startup so the Send page can create transactions. Without this, receiving payments still works but sending is disabled.
 
 4. Install the plugin from your BTCPay Server admin panel under **Server Settings > Plugins**. Search for "Decred" and click Install.
 
@@ -61,7 +61,7 @@ The Docker container includes `dcrctl` for direct wallet management. Run command
 
 ```bash
 # Shorthand for running dcrctl against dcrwallet
-alias dcrctl-wallet="docker exec btcpayserver_dcrwallet dcrctl --wallet --rpcuser=btcpay --rpcpass=btcpay --notls"
+alias dcrctl-wallet="docker exec btcpayserver_dcrwallet dcrctl --wallet --rpcuser=btcpay --rpcpass=btcpay"
 ```
 
 Common commands:
