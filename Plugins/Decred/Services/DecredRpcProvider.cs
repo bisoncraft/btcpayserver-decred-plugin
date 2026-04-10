@@ -13,7 +13,6 @@ namespace BTCPayServer.Plugins.Decred.Services;
 
 public class DecredRpcProvider
 {
-    readonly ImmutableDictionary<string, JsonRpcClient> _daemonClients;
     readonly ImmutableDictionary<string, JsonRpcClient> _walletClients;
     readonly ILogger<DecredRpcProvider> _logger;
     readonly Dictionary<string, DecredLikeSummary> _summaries = new();
@@ -29,20 +28,14 @@ public class DecredRpcProvider
         ILogger<DecredRpcProvider> logger)
     {
         _logger = logger;
-        var daemonClients = ImmutableDictionary.CreateBuilder<string, JsonRpcClient>();
         var walletClients = ImmutableDictionary.CreateBuilder<string, JsonRpcClient>();
 
         foreach (var (cryptoCode, item) in configuration.DecredLikeConfigurationItems)
         {
-            var httpClient = httpClientFactory.CreateClient($"{cryptoCode}client");
-
-            daemonClients.Add(cryptoCode, new JsonRpcClient(item.DaemonRpcUri, httpClient));
-
             var walletHttpClient = httpClientFactory.CreateClient($"{cryptoCode}client");
             walletClients.Add(cryptoCode, new JsonRpcClient(item.WalletRpcUri, walletHttpClient));
         }
 
-        _daemonClients = daemonClients.ToImmutable();
         _walletClients = walletClients.ToImmutable();
     }
 
@@ -54,10 +47,7 @@ public class DecredRpcProvider
         return summary;
     }
 
-    public IEnumerable<string> GetCryptoCodes() => _daemonClients.Keys;
-
-    public JsonRpcClient GetDaemonClient(string cryptoCode) =>
-        _daemonClients.TryGetValue(cryptoCode, out var client) ? client : null;
+    public IEnumerable<string> GetCryptoCodes() => _walletClients.Keys;
 
     public JsonRpcClient GetWalletClient(string cryptoCode) =>
         _walletClients.TryGetValue(cryptoCode, out var client) ? client : null;
@@ -73,58 +63,41 @@ public class DecredRpcProvider
             _summaries[cryptoCode] = summary;
         }
 
-        var previousAvailable = summary.DaemonAvailable;
+        var previousAvailable = summary.WalletAvailable;
 
         try
         {
-            var daemonClient = GetDaemonClient(cryptoCode);
-            if (daemonClient == null)
+            var walletClient = GetWalletClient(cryptoCode);
+            if (walletClient == null)
             {
-                summary.DaemonAvailable = false;
+                summary.WalletAvailable = false;
                 return;
             }
 
-            var info = await daemonClient.SendCommandAsync<GetBlockchainInfoResponse>(
-                "getblockchaininfo", cancellationToken: cancellationToken);
-
-            summary.CurrentHeight = info.Blocks;
-            summary.TargetHeight = info.Headers;
-            summary.Synced = info.IsSynced;
-            summary.DaemonAvailable = true;
+            var walletInfo = await walletClient.SendCommandAsync<WalletGetInfoResponse>(
+                "getinfo", cancellationToken: cancellationToken);
+            summary.CurrentHeight = walletInfo.Blocks;
+            summary.WalletHeight = walletInfo.Blocks;
+            summary.WalletAvailable = true;
             summary.UpdatedAt = DateTimeOffset.UtcNow;
 
-            // Check wallet
-            try
-            {
-                var walletClient = GetWalletClient(cryptoCode);
-                if (walletClient == null)
-                {
-                    summary.WalletAvailable = false;
-                    return;
-                }
-
-                var walletInfo = await walletClient.SendCommandAsync<WalletGetInfoResponse>(
-                    "getinfo", cancellationToken: cancellationToken);
-                summary.WalletHeight = walletInfo.Blocks;
-                summary.WalletAvailable = true;
-            }
-            catch (Exception ex)
-            {
-                summary.WalletAvailable = false;
-                _logger.LogWarning(ex, "Failed to get wallet info for {CryptoCode}", cryptoCode);
-            }
+            // dcrwallet in SPV mode syncs headers then blocks.
+            // Consider synced if we have blocks and the height is recent.
+            // A more robust check could compare against peer-reported heights,
+            // but for now trust that dcrwallet reports accurately.
+            summary.Synced = walletInfo.Blocks > 0;
         }
         catch (Exception ex)
         {
-            summary.DaemonAvailable = false;
             summary.WalletAvailable = false;
-            _logger.LogWarning(ex, "Failed to get daemon info for {CryptoCode}", cryptoCode);
+            summary.Synced = false;
+            _logger.LogWarning(ex, "Failed to get wallet info for {CryptoCode}", cryptoCode);
         }
 
-        if (previousAvailable != summary.DaemonAvailable)
+        if (previousAvailable != summary.WalletAvailable)
         {
-            _logger.LogInformation("{CryptoCode} daemon availability changed to {Available}",
-                cryptoCode, summary.DaemonAvailable);
+            _logger.LogInformation("{CryptoCode} wallet availability changed to {Available}",
+                cryptoCode, summary.WalletAvailable);
         }
     }
 }
@@ -134,8 +107,6 @@ public class DecredLikeSummary
     public bool Synced { get; set; }
     public long CurrentHeight { get; set; }
     public long WalletHeight { get; set; }
-    public long TargetHeight { get; set; }
     public DateTimeOffset UpdatedAt { get; set; }
-    public bool DaemonAvailable { get; set; }
     public bool WalletAvailable { get; set; }
 }

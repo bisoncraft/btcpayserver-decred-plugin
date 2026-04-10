@@ -5,24 +5,20 @@
 {
     var summary = RpcProvider.GetSummary(cryptoCode);
     <div class="d-flex align-items-center gap-2">
-        <span class="badge @(summary is { DaemonAvailable: true, Synced: true } ? "bg-success" : "bg-warning")">
+        <span class="badge @(summary is { WalletAvailable: true, Synced: true } ? "bg-success" : "bg-warning")">
             @cryptoCode
         </span>
-        @if (summary == null || !summary.DaemonAvailable)
+        @if (summary == null || !summary.WalletAvailable)
         {
-            <span class="text-danger">Node unavailable</span>
+            <span class="text-danger">Wallet unavailable</span>
         }
         else if (!summary.Synced)
         {
-            <span class="text-warning">Syncing... @summary.CurrentHeight / @summary.TargetHeight</span>
-        }
-        else if (!summary.WalletAvailable)
-        {
-            <span class="text-warning">Wallet unavailable (node synced at @summary.CurrentHeight)</span>
+            <span class="text-warning">Syncing... @summary.WalletHeight</span>
         }
         else
         {
-            <span class="text-success">Synced at @summary.CurrentHeight</span>
+            <span class="text-success">Synced at @summary.WalletHeight</span>
         }
     </div>
 }

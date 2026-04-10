@@ -57,10 +57,8 @@ public class DecredLikeStoreController : Controller
             Enabled = enabled,
             AccountName = config.AccountName ?? "default",
             InvoiceSettledConfirmationThreshold = config.InvoiceSettledConfirmationThreshold,
-            DaemonAvailable = summary?.DaemonAvailable ?? false,
             WalletAvailable = summary?.WalletAvailable ?? false,
             Synced = summary?.Synced ?? false,
-            CurrentHeight = summary?.CurrentHeight ?? 0,
             WalletHeight = summary?.WalletHeight ?? 0
         });
     }
@@ -189,10 +187,8 @@ public class DecredStoreViewModel
     public bool Enabled { get; set; }
     public string AccountName { get; set; } = "default";
     public int? InvoiceSettledConfirmationThreshold { get; set; }
-    public bool DaemonAvailable { get; set; }
     public bool WalletAvailable { get; set; }
     public bool Synced { get; set; }
-    public long CurrentHeight { get; set; }
     public long WalletHeight { get; set; }
 }
 

@@ -2,9 +2,11 @@
 
 A [BTCPay Server](https://github.com/btcpayserver/btcpayserver) plugin that enables receiving payments via [Decred](https://decred.org/).
 
-The plugin talks directly to `dcrd` and `dcrwallet` via JSON-RPC. No NBitcoin or NBXplorer dependency required.
+The plugin talks directly to `dcrwallet` (in SPV mode) via JSON-RPC. No dcrd node, NBitcoin, or NBXplorer required.
 
 ## Deployment
+
+If you don't have BTCPay Server yet, follow the [official deployment guide](https://docs.btcpayserver.org/Docker/) to set it up with Docker.
 
 If you already run BTCPay Server via [btcpayserver-docker](https://github.com/btcpayserver/btcpayserver-docker):
 
@@ -18,7 +20,7 @@ If you already run BTCPay Server via [btcpayserver-docker](https://github.com/bt
    . btcpay-setup.sh -i
    ```
 
-   This starts `dcrd` and `dcrwallet` containers alongside your existing stack. The blockchain will take some time to sync.
+   This starts a `dcrwallet` container in SPV mode alongside your existing stack. It will sync headers and blocks from the Decred P2P network.
 
 3. To enable sending from the wallet (withdrawals), add the wallet passphrase to the `.env` file and restart:
 
@@ -32,7 +34,7 @@ If you already run BTCPay Server via [btcpayserver-docker](https://github.com/bt
 
 4. Install the plugin from your BTCPay Server admin panel under **Server Settings > Plugins**. Search for "Decred" and click Install.
 
-5. Go to **Store Settings > Decred** to verify the connection status. Once `dcrd` is synced and `dcrwallet` is connected, the store is ready to accept DCR.
+5. Go to **Store Settings > Decred** to verify the connection status. Once `dcrwallet` is synced, the store is ready to accept DCR.
 
 6. Create an invoice and select Decred as the payment method. To withdraw funds, use the Send button on the Decred settings page.
 
@@ -41,30 +43,25 @@ If you already run BTCPay Server via [btcpayserver-docker](https://github.com/bt
 If you are not using btcpayserver-docker, you need:
 
 - BTCPay Server >= 2.1.0
-- A running `dcrd` node with `--txindex` enabled
-- A running `dcrwallet` instance connected to the node
+- A running `dcrwallet` instance (SPV mode recommended: `dcrwallet --spv`)
 
 Set these environment variables on your BTCPay Server instance:
 
 | Variable | Description | Example |
 |---|---|---|
-| `BTCPAY_DCR_DAEMON_URI` | dcrd RPC endpoint | `http://dcrd:9109` |
-| `BTCPAY_DCR_WALLET_DAEMON_URI` | dcrwallet RPC endpoint | `http://dcrwallet:9110` |
-| `BTCPAY_DCR_DAEMON_USERNAME` | RPC username | `btcpay` |
-| `BTCPAY_DCR_DAEMON_PASSWORD` | RPC password | `btcpay` |
+| `BTCPAY_DCR_WALLET_URI` | dcrwallet RPC endpoint | `http://dcrwallet:9110` |
+| `BTCPAY_DCR_RPC_USERNAME` | RPC username | `btcpay` |
+| `BTCPAY_DCR_RPC_PASSWORD` | RPC password | `btcpay` |
 
 Then install the plugin DLL manually by placing it in BTCPay Server's `Plugins` directory and restarting.
 
 ## Using dcrctl
 
-The Docker containers include `dcrctl` for direct wallet and node management. Run commands via `docker exec`:
+The Docker container includes `dcrctl` for direct wallet management. Run commands via `docker exec`:
 
 ```bash
 # Shorthand for running dcrctl against dcrwallet
 alias dcrctl-wallet="docker exec btcpayserver_dcrwallet dcrctl --wallet --rpcuser=btcpay --rpcpass=btcpay --notls"
-
-# Shorthand for running dcrctl against dcrd
-alias dcrctl-node="docker exec btcpayserver_dcrd dcrctl --rpcuser=btcpay --rpcpass=btcpay --notls"
 ```
 
 Common commands:
@@ -81,17 +78,11 @@ dcrctl-wallet listtransactions
 
 # Rescan the blockchain (e.g. after importing keys or if transactions are missing)
 dcrctl-wallet rescanwallet
-
-# Check node sync status
-dcrctl-node getblockchaininfo
-
-# Get node connection info
-dcrctl-node getpeerinfo
 ```
 
 ## Docker image
 
-The Docker image containing `dcrd`, `dcrwallet`, and `dcrctl` is published to GHCR. The `docker-fragment/` directory contains the compose fragments for btcpayserver-docker.
+The Docker image containing `dcrwallet` and `dcrctl` is published to GHCR. The `docker-fragment/` directory contains the compose fragments for btcpayserver-docker.
 
 ## Development
 

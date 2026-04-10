@@ -19,7 +19,7 @@ public class DecredSyncSummaryProvider : ISyncSummaryProvider
         return _rpcProvider.GetCryptoCodes().All(c =>
         {
             var summary = _rpcProvider.GetSummary(c);
-            return summary is { DaemonAvailable: true, Synced: true };
+            return summary is { WalletAvailable: true, Synced: true };
         });
     }
 
@@ -45,5 +45,5 @@ public class DecredSyncStatus : ISyncStatus
     public string PaymentMethodId { get; set; }
     public string CryptoCode { get; set; }
     public DecredLikeSummary Summary { get; set; }
-    public bool Available => Summary is { DaemonAvailable: true, Synced: true };
+    public bool Available => Summary is { WalletAvailable: true, Synced: true };
 }

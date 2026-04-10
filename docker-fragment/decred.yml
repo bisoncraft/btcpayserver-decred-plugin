@@ -1,38 +1,22 @@
 # Docker compose fragment for btcpayserver-docker.
 # Place in: docker-compose-generator/docker-fragments/decred.yml
+#
+# dcrwallet runs in SPV mode - no dcrd node required.
 
 version: "3"
 
 services:
-  dcrd:
-    restart: unless-stopped
-    container_name: btcpayserver_dcrd
-    image: ghcr.io/joegruffins/decred:2.1.3
-    command:
-      - dcrd
-      - --rpcuser=btcpay
-      - --rpcpass=btcpay
-      - --rpclisten=0.0.0.0:9109
-      - --notls
-      - --txindex
-      - --rejectnonstd
-    expose:
-      - "9109"
-    volumes:
-      - "dcr_data:/home/decred/.dcrd"
-
   dcrwallet:
     restart: unless-stopped
     container_name: btcpayserver_dcrwallet
-    image: ghcr.io/joegruffins/decred:2.1.3
+    image: ghcr.io/bisoncraft/decred:2.1.3
     command:
       - dcrwallet
-      - --rpcconnect=dcrd:9109
+      - --spv
       - --username=btcpay
       - --password=btcpay
       - --rpclisten=0.0.0.0:9110
       - --noservertls
-      - --noclienttls
       - --grpclisten=
       - --enablevoting=false
       - --pass=${BTCPAY_DCR_WALLET_PASSPHRASE:-}
@@ -40,16 +24,12 @@ services:
       - "9110"
     volumes:
       - "dcr_wallet:/home/decred/.dcrwallet"
-    depends_on:
-      - dcrd
 
   btcpayserver:
     environment:
-      BTCPAY_DCR_DAEMON_URI: http://dcrd:9109
-      BTCPAY_DCR_WALLET_DAEMON_URI: http://dcrwallet:9110
-      BTCPAY_DCR_DAEMON_USERNAME: btcpay
-      BTCPAY_DCR_DAEMON_PASSWORD: btcpay
+      BTCPAY_DCR_WALLET_URI: http://dcrwallet:9110
+      BTCPAY_DCR_RPC_USERNAME: btcpay
+      BTCPAY_DCR_RPC_PASSWORD: btcpay
 
 volumes:
-  dcr_data:
   dcr_wallet:

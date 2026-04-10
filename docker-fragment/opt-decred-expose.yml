@@ -1,12 +1,9 @@
-# Optional fragment to expose Decred RPC ports for debugging.
+# Optional fragment to expose Decred RPC port for debugging.
 # Place in: docker-compose-generator/docker-fragments/opt-decred-expose.yml
 
 version: "3"
 
 services:
-  dcrd:
-    ports:
-      - "127.0.0.1:9109:9109"
   dcrwallet:
     ports:
       - "127.0.0.1:9110:9110"

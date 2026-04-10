@@ -74,11 +74,10 @@ sudo -u postgres psql -c "ALTER DATABASE btcpaytest OWNER TO btcpay;"
 ```bash
 cd btcpayserver-decred-plugin
 
-# Set Decred harness env vars
-export BTCPAY_DCR_DAEMON_URI="https://127.0.0.1:19561"
-export BTCPAY_DCR_WALLET_DAEMON_URI="https://127.0.0.1:19581"
-export BTCPAY_DCR_DAEMON_USERNAME="user"
-export BTCPAY_DCR_DAEMON_PASSWORD="pass"
+# Set Decred harness env vars (trading1 wallet)
+export BTCPAY_DCR_WALLET_URI="https://127.0.0.1:19581"
+export BTCPAY_DCR_RPC_USERNAME="user"
+export BTCPAY_DCR_RPC_PASSWORD="pass"
 
 # Set BTCPayServer config
 export BTCPAY_POSTGRES="Host=localhost;Database=btcpaytest;Username=btcpay;Password=btcpay"

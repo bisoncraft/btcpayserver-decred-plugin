@@ -1,9 +1,9 @@
-# Docker image containing dcrd, dcrwallet, and dcrctl binaries.
+# Docker image containing dcrwallet and dcrctl binaries.
 # Built and published automatically via GitHub Actions.
 #
 # Usage:
-#   docker run ghcr.io/<owner>/btcpayserver-decred-plugin dcrd [args...]
-#   docker run ghcr.io/<owner>/btcpayserver-decred-plugin dcrwallet [args...]
+#   docker run ghcr.io/<owner>/decred dcrwallet [args...]
+#   docker run ghcr.io/<owner>/decred dcrctl [args...]
 
 FROM debian:bookworm-slim AS builder
 
@@ -26,13 +26,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certifi
 
 RUN useradd -m -s /bin/bash decred
 
-COPY --from=builder /tmp/decred/dcrd /usr/local/bin/
 COPY --from=builder /tmp/decred/dcrwallet /usr/local/bin/
 COPY --from=builder /tmp/decred/dcrctl /usr/local/bin/
 
 USER decred
 WORKDIR /home/decred
 
-VOLUME ["/home/decred/.dcrd", "/home/decred/.dcrwallet"]
+VOLUME ["/home/decred/.dcrwallet"]
 
-CMD ["dcrd"]
+CMD ["dcrwallet"]

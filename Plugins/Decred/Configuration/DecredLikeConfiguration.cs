@@ -10,7 +10,6 @@ public class DecredLikeConfiguration
 
 public class DecredLikeConfigurationItem
 {
-    public Uri DaemonRpcUri { get; set; }
     public Uri WalletRpcUri { get; set; }
     public string Username { get; set; }
     public string Password { get; set; }

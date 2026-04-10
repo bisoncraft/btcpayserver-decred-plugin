@@ -85,17 +85,15 @@ public class DecredPlugin : BaseBTCPayServerPlugin
             var cryptoCode = "DCR";
 
             var prefix = $"BTCPAY_{cryptoCode}_";
-            var daemonUri = Environment.GetEnvironmentVariable(prefix + "DAEMON_URI");
-            var walletUri = Environment.GetEnvironmentVariable(prefix + "WALLET_DAEMON_URI");
-            var username = Environment.GetEnvironmentVariable(prefix + "DAEMON_USERNAME");
-            var password = Environment.GetEnvironmentVariable(prefix + "DAEMON_PASSWORD");
+            var walletUri = Environment.GetEnvironmentVariable(prefix + "WALLET_URI");
+            var username = Environment.GetEnvironmentVariable(prefix + "RPC_USERNAME");
+            var password = Environment.GetEnvironmentVariable(prefix + "RPC_PASSWORD");
 
-            if (daemonUri == null || walletUri == null)
+            if (walletUri == null)
                 return config;
 
             config.DecredLikeConfigurationItems[cryptoCode] = new DecredLikeConfigurationItem
             {
-                DaemonRpcUri = new Uri(daemonUri),
                 WalletRpcUri = new Uri(walletUri),
                 Username = username,
                 Password = password

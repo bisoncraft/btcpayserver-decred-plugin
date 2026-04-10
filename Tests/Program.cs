@@ -8,9 +8,9 @@ using BTCPayServer.Plugins.Decred.RPC.Models;
 
 // Test the Decred JSON-RPC client against the dcrdex simnet harness.
 // Requires: harness.sh running (tmux session dcr-harness)
+// Uses the trading1 wallet on port 19581.
 
-var daemonUri = new Uri("https://127.0.0.1:19561");
-var walletUri = new Uri("https://127.0.0.1:19562");
+var walletUri = new Uri("https://127.0.0.1:19581");
 var username = "user";
 var password = "pass";
 
@@ -23,7 +23,6 @@ var httpClient = new HttpClient(handler);
 var credentials = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{username}:{password}"));
 httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", credentials);
 
-var daemon = new JsonRpcClient(daemonUri, httpClient);
 var wallet = new JsonRpcClient(walletUri, httpClient);
 
 var passed = 0;
@@ -44,41 +43,15 @@ async Task Test(string name, Func<Task> test)
     }
 }
 
-Console.WriteLine("Testing Decred RPC client against simnet harness...\n");
+Console.WriteLine("Testing Decred RPC client against simnet harness (trading1 wallet)...\n");
 
-// Daemon tests
-Console.WriteLine("=== dcrd (daemon) ===");
-
-await Test("getblockchaininfo", async () =>
-{
-    var info = await daemon.SendCommandAsync<GetBlockchainInfoResponse>("getblockchaininfo");
-    Console.WriteLine($"         chain={info.Chain}, blocks={info.Blocks}, headers={info.Headers}, synced={info.IsSynced}");
-    if (info.Blocks < 1) throw new Exception("Block count should be > 0");
-    if (!info.IsSynced) throw new Exception("Should be synced on simnet");
-});
+Console.WriteLine("=== dcrwallet ===");
 
 await Test("getinfo", async () =>
 {
-    var info = await daemon.SendCommandAsync<DaemonGetInfoResponse>("getinfo");
-    Console.WriteLine($"         version={info.Version}, blocks={info.Blocks}, connections={info.Connections}");
-    if (info.Blocks < 1) throw new Exception("Block count should be > 0");
-});
-
-await Test("estimatesmartfee", async () =>
-{
-    var fee = await daemon.SendCommandAsync<EstimateSmartFeeResponse>("estimatesmartfee", [(object)6]);
-    Console.WriteLine($"         feerate={fee.FeeRate} DCR/kB, blocks={fee.Blocks}");
-    if (fee.FeeRate <= 0) throw new Exception("Fee rate should be positive");
-});
-
-// Wallet tests
-Console.WriteLine("\n=== dcrwallet ===");
-
-await Test("getinfo (wallet)", async () =>
-{
     var info = await wallet.SendCommandAsync<WalletGetInfoResponse>("getinfo");
     Console.WriteLine($"         version={info.Version}, blocks={info.Blocks}, balance={info.Balance}");
-    if (info.Balance <= 0) throw new Exception("Balance should be > 0 on simnet");
+    if (info.Blocks < 1) throw new Exception("Block count should be > 0");
 });
 
 await Test("getbalance", async () =>

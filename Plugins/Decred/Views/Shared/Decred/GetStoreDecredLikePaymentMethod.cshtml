@@ -8,45 +8,28 @@
 <div class="row">
     <div class="col-xl-8">
 
-        @* Node status *@
+        @* Wallet status *@
         <div class="card mb-4">
             <div class="card-header">
-                <h5 class="card-title mb-0">Node Status</h5>
+                <h5 class="card-title mb-0">Wallet Status</h5>
             </div>
             <div class="card-body">
-                <div class="d-flex flex-column gap-2">
-                    <div>
-                        <strong>Daemon:</strong>
-                        @if (Model.DaemonAvailable)
-                        {
-                            <span class="badge bg-success">Available</span>
-                            @if (Model.Synced)
-                            {
-                                <span class="text-muted">Synced at block @Model.CurrentHeight</span>
-                            }
-                            else
-                            {
-                                <span class="text-warning">Syncing...</span>
-                            }
-                        }
-                        else
-                        {
-                            <span class="badge bg-danger">Unavailable</span>
-                        }
-                    </div>
-                    <div>
-                        <strong>Wallet:</strong>
-                        @if (Model.WalletAvailable)
-                        {
-                            <span class="badge bg-success">Available</span>
-                            <span class="text-muted">Block @Model.WalletHeight</span>
-                        }
-                        else
-                        {
-                            <span class="badge bg-danger">Unavailable</span>
-                        }
-                    </div>
-                </div>
+                @if (Model.WalletAvailable)
+                {
+                    <span class="badge bg-success">Available</span>
+                    @if (Model.Synced)
+                    {
+                        <span class="text-muted">Synced at block @Model.WalletHeight</span>
+                    }
+                    else
+                    {
+                        <span class="text-warning">Syncing...</span>
+                    }
+                }
+                else
+                {
+                    <span class="badge bg-danger">Unavailable</span>
+                }
             </div>
         </div>
 
