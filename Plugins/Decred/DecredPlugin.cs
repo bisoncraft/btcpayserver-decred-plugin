@@ -22,6 +22,11 @@ public class DecredPlugin : BaseBTCPayServerPlugin
     public override string Name => "Decred";
     public override string Description => "Enables receiving payments via Decred.";
 
+    public override IBTCPayServerPlugin.PluginDependency[] Dependencies =>
+    [
+        new() { Identifier = "BTCPayServer", Condition = ">=2.1.0" }
+    ];
+
     public override void Execute(IServiceCollection services)
     {
         var network = new DecredLikeSpecificBtcPayNetwork
